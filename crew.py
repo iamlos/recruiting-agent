@@ -17,8 +17,9 @@ class RecruitingCrew:
                 "traversing college athletic websites. Your specialty is efficiently "
                 "locating recruiting questionnaires across various university platforms."
             ),
-            verbose=True,
-            tools=[BrowserbaseLoadTool()]
+            tools=[BrowserbaseLoadTool()],
+            verbose=True
+
         )
 
     @agent
@@ -31,8 +32,8 @@ class RecruitingCrew:
                 "web forms with precision. You understand form validation requirements "
                 "and can handle various input types effectively."
             ),
-            verbose=True,
-            tools=[SeleniumScrapingTool()]
+            tools=[SeleniumScrapingTool()],
+            verbose=True
         )
 
     @agent
@@ -46,8 +47,8 @@ class RecruitingCrew:
                 "status reports. You can identify submission confirmations and "
                 "handle error scenarios effectively."
             ),
-            verbose=True,
-            tools=[SeleniumScrapingTool()]
+            tools=[SeleniumScrapingTool()],
+            verbose=True
         )
 
     # Task definitions (moved from tasks.yaml)
@@ -62,8 +63,8 @@ class RecruitingCrew:
                 "The URL of the recruiting questionnaire page and confirmation that "
                 "the form is accessible."
             ),
-            agent=self.navigator(),
             tools=[BrowserbaseLoadTool()],
+            agent=self.navigator(),
             callback=self._navigate_to_questionnaire_callback,
             feedback=True,
             feedback_message="🧭 Navigation complete! Form found and accessible."
