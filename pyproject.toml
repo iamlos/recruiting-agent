@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "recruiting_crew"
+version = "0.1.0"
+description = "Automation for college sports recruiting questionnaire submissions"
+authors = [
+    {name = "Developer", email = "example@example.com"}
+]
+requires-python = ">=3.8"
+dependencies = [
+    "streamlit>=1.28.0",
+    "crewai>=0.11.0",
+    "crewai-tools>=0.0.6",
+    "selenium>=4.15.0",
+    "pyyaml>=6.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "isort",
+]
+
+[tool.setuptools]
+packages = ["recruiting_crew"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
