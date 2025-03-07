@@ -19,7 +19,6 @@ class RecruitingCrew:
             ),
             tools=[BrowserbaseLoadTool()],
             verbose=True
-
         )
 
     @agent
@@ -51,7 +50,7 @@ class RecruitingCrew:
             verbose=True
         )
 
-    # Task definitions (moved from tasks.yaml)
+    # Task definitions
     @task
     def navigate_to_questionnaire(self) -> Task:
         return Task(
@@ -59,10 +58,7 @@ class RecruitingCrew:
                 "Navigate to {college}'s athletic website and locate the recruiting "
                 "questionnaire for {sport}. Ensure the correct form is found and accessible."
             ),
-            expected_output=(
-                "The URL of the recruiting questionnaire page and confirmation that "
-                "the form is accessible."
-            ),
+            expected_output="The URL of the recruiting questionnaire page and confirmation that the form is accessible.",
             tools=[BrowserbaseLoadTool()],
             agent=self.navigator(),
             callback=self._navigate_to_questionnaire_callback,
@@ -71,120 +67,99 @@ class RecruitingCrew:
         )
 
     def _navigate_to_questionnaire_callback(self, college: str, sport: str) -> str:
-        """Callback to actually use the BrowserbaseLoadTool to find the recruiting form."""
+        """Callback to use BrowserbaseLoadTool to find the recruiting form."""
         search_url = f"https://www.google.com/search?q={college}+{sport}+recruiting+questionnaire"
-        
-        # Check if the agent has tools
         agent = self.navigator()
+
+        # Ensure agent has the tool
         if not agent.tools:
             return "❌ ERROR: No tools connected to the navigation agent."
 
-        # Locate the BrowserbaseLoadTool
         load_tool = next((tool for tool in agent.tools if isinstance(tool, BrowserbaseLoadTool)), None)
         if not load_tool:
-            return "❌ ERROR: BrowserbaseLoadTool not found. Ensure the tool is assigned to the navigation agent."
+            return "❌ ERROR: BrowserbaseLoadTool not found."
 
         try:
-            # Log tool execution
             print(f"🌐 Loading URL: {search_url} using BrowserbaseLoadTool...")
-
-            # Run the tool with the search URL
             result = load_tool.run(url=search_url)
 
-            # Log and return the result
             print(f"📄 Tool Result: {result}")
-            if result:
-                return f"✅ Successfully loaded the page. URL: {search_url}"
-            else:
-                return f"❌ Failed to load the page: {search_url}"
-        
+            return f"✅ Successfully loaded the page: {search_url}" if result else f"❌ Failed to load page: {search_url}"
         except Exception as e:
-            error_message = f"❌ Error loading page: {str(e)}"
-            print(error_message)
-            return error_message
+            return f"❌ Error loading page: {str(e)}"
 
     @task
     def fill_questionnaire(self) -> Task:
         return Task(
-            description=(
-                "Complete the recruiting questionnaire with test data. Include standard "
-                "fields like name, contact information, academic details, and athletic experience."
-            ),
-            expected_output=(
-                "Confirmation that all required fields have been filled with appropriate "
-                "test data."
-            ),
-            agent=self.form_handler()
+            description="Complete the recruiting questionnaire with test data.",
+            expected_output="Confirmation that all required fields have been filled with appropriate test data.",
+            agent=self.form_handler(),
+            tools=[SeleniumScrapingTool()],
+            callback=self._fill_questionnaire_callback
         )
+
+    def _fill_questionnaire_callback(self):
+        """Callback to execute SeleniumScrapingTool for form filling."""
+        agent = self.form_handler()
+
+        if not agent.tools:
+            return "❌ ERROR: No tools connected to the form handler agent."
+
+        scraping_tool = next((tool for tool in agent.tools if isinstance(tool, SeleniumScrapingTool)), None)
+        if not scraping_tool:
+            return "❌ ERROR: SeleniumScrapingTool not found."
+
+        try:
+            print("📝 Filling the questionnaire using SeleniumScrapingTool...")
+            result = scraping_tool.run()
+
+            return "✅ Questionnaire successfully filled." if result else "❌ Failed to fill the questionnaire."
+        except Exception as e:
+            return f"❌ Error while filling questionnaire: {str(e)}"
 
     @task
     def verify_submission(self) -> Task:
         return Task(
-            description=(
-                "Submit the completed questionnaire and verify the submission was successful. "
-                "Generate a detailed status report."
-            ),
-            expected_output=(
-                "A status report containing submission confirmation or error details, "
-                "and any relevant response messages."
-            ),
+            description="Submit the completed questionnaire and verify the submission.",
+            expected_output="A status report with submission confirmation or error details.",
             agent=self.verification_agent(),
+            tools=[SeleniumScrapingTool()],
+            callback=self._verify_submission_callback,
             output_file='output/submission_report.md',
             feedback=True,
-            feedback_message="✅ Submission verified and report generated.",
-            tools=[SeleniumScrapingTool()],
-            callback=self._verify_submission_callback
+            feedback_message="✅ Submission verified and report generated."
         )
 
     def _verify_submission_callback(self):
-        """Callback to explicitly run the SeleniumScrapingTool and verify submission."""
+        """Callback to execute SeleniumScrapingTool for submission verification."""
         submission_page_url = "https://example-university.edu/sports/recruiting/confirmation"
         confirmation_message_selector = ".submission-confirmation"
-
         agent = self.verification_agent()
 
-        # Check if the agent has the necessary tools
         if not agent.tools:
-            error_message = "❌ ERROR: No tools connected to the verification agent."
-            print(error_message)
-            return error_message
+            return "❌ ERROR: No tools connected to the verification agent."
 
-        # Find the SeleniumScrapingTool
         scraping_tool = next((tool for tool in agent.tools if isinstance(tool, SeleniumScrapingTool)), None)
         if not scraping_tool:
-            error_message = "❌ ERROR: SeleniumScrapingTool not found."
-            print(error_message)
-            return error_message
+            return "❌ ERROR: SeleniumScrapingTool not found."
 
         try:
-            # Explicitly set tool parameters
             scraping_tool.website_url = submission_page_url
             scraping_tool.css_element = confirmation_message_selector
 
-            # Log tool execution attempt
-            print(f"🔍 Running SeleniumScrapingTool with URL: {submission_page_url} and CSS Selector: {confirmation_message_selector}")
-
-            # Explicitly run the tool
+            print(f"🔍 Running SeleniumScrapingTool on {submission_page_url}")
             result = scraping_tool.run(
                 website_url=submission_page_url,
                 css_element=confirmation_message_selector
             )
 
-            # Check if the tool executed
             if not result:
                 return "❌ ERROR: Tool execution failed. No result returned."
 
-            # Output the result
             print(f"📄 Tool Result: {result}")
-            if "Success" in result or "Thank you" in result:
-                return "✅ Form submission successful!"
-            else:
-                return f"❌ Submission failed. Response: {result}"
-        
+            return "✅ Form submission successful!" if "Success" in result or "Thank you" in result else f"❌ Submission failed. Response: {result}"
         except Exception as e:
-            error_message = f"❌ Error during tool execution: {str(e)}"
-            print(error_message)
-            return error_message
+            return f"❌ Error during tool execution: {str(e)}"
 
     # Crew definition
     @crew
