@@ -20,7 +20,7 @@ st.markdown("""
 """)
 
 # Input fields
-college = st.text_input("College Name", placeholder="Enter college name (e.g., Stanford University)")
+college = st.text_input("College Name", placeholder="Enter college name (e.g., University of South Florida)")
 sport = st.selectbox(
     "Sport",
     options=[
