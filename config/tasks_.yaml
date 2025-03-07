@@ -1,0 +1,29 @@
+navigate_to_questionnaire:
+  description: >
+    Navigate to {college}'s athletic website and locate the recruiting
+    questionnaire for {sport}. Ensure the correct form is found and
+    accessible.
+  expected_output: >
+    The URL of the recruiting questionnaire page and confirmation that
+    the form is accessible.
+  agent: navigator
+
+fill_questionnaire:
+  description: >
+    Complete the recruiting questionnaire with test data. Include standard
+    fields like name, contact information, academic details, and athletic
+    experience.
+  expected_output: >
+    Confirmation that all required fields have been filled with appropriate
+    test data.
+  agent: form_handler
+
+verify_submission:
+  description: >
+    Submit the completed questionnaire and verify the submission was
+    successful. Generate a detailed status report.
+  expected_output: >
+    A status report containing submission confirmation or error details,
+    and any relevant response messages.
+  agent: verification_agent
+  output_file: submission_report.md
